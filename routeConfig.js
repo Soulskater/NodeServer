@@ -5,11 +5,11 @@
 var routes = [
     {
         path: '/',
-        content: require('./routes/index')
+        content: require('./services/index')
     },
     {
         path: '/users',
-        content: require('./routes/users')
+        content: require('./services/users')
     }
 ];
 
