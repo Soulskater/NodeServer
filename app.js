@@ -1,6 +1,5 @@
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -8,6 +7,16 @@ var routeConfig = require('./routeConfig.js');
 
 var app = express();
 var routes = routeConfig(app);
+var userModel = require('./models/User');
+var dbContext = require('./database/dbContext');
+
+var context = new dbContext();
+context.addObject("User", {
+    userID: 1,
+    userName: "aladár",
+    password: "admin",
+    token: "token12345"
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
