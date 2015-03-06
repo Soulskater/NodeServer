@@ -3,36 +3,28 @@
  */
 
 module.exports = {
-    string: function (nullable) {
-        return function (value) {
-            if (nullable !== false && (typeof value !== "string")) {
-                return {
-                    isValid: false,
-                    nullable: nullable,
-                    value: "Expected type is string, got " + value
-                };
-            }
+    string: function (value, nullable) {
+        if (nullable !== false && (typeof value !== "string")) {
             return {
-                isValid: true,
-                nullable: nullable,
-                value: value
+                isValid: false,
+                value: "Expected type is string, got " + value
             };
         }
+        return {
+            isValid: true,
+            value: value
+        };
     },
-    number: function (nullable) {
-        return function (value) {
-            if (nullable !== false && (typeof value !== "number")) {
-                return {
-                    isValid: false,
-                    nullable: nullable,
-                    value: "Expected type is number, got " + value
-                };
-            }
+    number: function (value, nullable) {
+        if (nullable !== false && (typeof value !== "number")) {
             return {
-                isValid: true,
-                nullable: nullable,
-                value: value
+                isValid: false,
+                value: "Expected type is number, got " + value
             };
         }
+        return {
+            isValid: true,
+            value: value
+        };
     }
 };

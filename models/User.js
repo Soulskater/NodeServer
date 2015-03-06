@@ -5,22 +5,28 @@ var schema = require("../database/schema");
 var types = require('../database/objectTypes');
 var factory = require('./modelFactory');
 
-var userSchema = new schema({
-    userID: {
-        isKeyField: true,
-        type: types.number()
-    },
-    userName:{
-        isKeyField: false,
-        type: types.string()
-    },
-    password: {
-        isKeyField: false,
-        type: types.string()
-    },
-    token: {
-        isKeyField: false,
-        type: types.string()
-    }
-});
-factory.registerModel("User", userSchema);
+var userSchema = new schema("User",
+    {
+        userID: {
+            isKeyField: true,
+            isIdentity: true,
+            isRequired: true,
+            type: types.number
+        },
+        userName: {
+            isKeyField: false,
+            isRequired: true,
+            type: types.string
+        },
+        password: {
+            isKeyField: false,
+            isRequired: true,
+            type: types.string
+        },
+        token: {
+            isKeyField: false,
+            isRequired: true,
+            type: types.string
+        }
+    });
+factory.registerSchema(userSchema);

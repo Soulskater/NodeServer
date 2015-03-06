@@ -4,12 +4,11 @@
 var q = require('Q');
 var util = require('util');
 var appConfig = require('../config/app.config');
-var squel = require("squel");
 var modelFactory = require("../models/modelFactory");
 var sql = require('mssql');
+var entityState = require('./entityState');
 var extend = require('node.extend');
-var sqlKeywords = require('./reservedKeywords');
-
+var scriptGenerator = require('./scriptGenerator');
 
 module.exports = function () {
 
@@ -19,21 +18,32 @@ module.exports = function () {
         }
     }, appConfig.dbConnection);
 
-    this.addObject = function (object) {
-        var model = modelFactory.createModel(object);
+    this.addObject = function (name, object) {
+        var model = modelFactory.createObject(name, entityState.new, object);
 
-        var query = squel.insert().into(_formatTableName(object.__entityType__));
-
-        for (var modelProp in model) {
-            var objectVal = model[modelProp];
-            query.set(modelProp, objectVal);
-        }
-        var script = query.toString();
-        _executeQuery(script);
+        var script = scriptGenerator.createInsert(model);
+        _executeQuery(script).then(function (resultSet) {
+            var identityRecord = resultSet[0];
+            if (identityRecord) {
+                console.dir(identityRecord.ObjectID);
+                return identityRecord.ObjectID;
+            }
+            else {
+                return null;
+            }
+        });
     };
 
-    this.getObjects = function (filterObject) {
-
+    this.getObjects = function () {
+        var query = {};
+        query.where("User", function (user) {
+            return user.userName === "gmeszaros" && user.password;
+        });
+        /*.prop("name")
+         .equalsTo("gmeszaros")
+         .and()
+         .prop("password")
+         .equalsTo("admin");*/
     };
 
     function _executeQuery(commandText) {
@@ -56,12 +66,5 @@ module.exports = function () {
             });
         });
         return deferred.promise;
-    }
-
-    function _formatTableName(name) {
-        if (sqlKeywords.indexOf(name.toUpperCase()) !== -1) {
-            return util.format("dbo.[%s]", name);
-        }
-        return name;
     }
 };

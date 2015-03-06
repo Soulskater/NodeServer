@@ -12,9 +12,8 @@ var dbContext = require('./database/dbContext');
 
 var context = new dbContext();
 context.addObject("User", {
-    userID: 1,
     userName: "aladár",
-    password: "admin",
+    password: "mypass",
     token: "token12345"
 });
 

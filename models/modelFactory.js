@@ -1,42 +1,41 @@
 /**
  * Created by gmeszaros on 3/3/2015.
  */
-var models = [];
+var entitySchemas = [];
 module.exports = {
-    registerModel: function (name, schema) {
-        var model = {
-            name: name,
-            schema: schema
-        };
-        if (models.indexOf(model) === -1) {
-            models.push(model);
+    registerSchema: function (schema) {
+        if (entitySchemas.indexOf(schema) === -1) {
+            entitySchemas.push(schema);
         }
         else {
-            console.warn("The model is already registered, got " + name);
+            console.warn("The model is already registered, got " + schema.name);
         }
     },
-    createModel: function (name, source) {
-        var model = _getBaseModel(name);
-        if (!model.schema.validate(source)) {
+    createObject: function (name, entityState, source) {
+        var entitySchema = _getEntitySchema(name);
+        if (!entitySchema.validate(source)) {
             console.error("Given source is invalid for model " + name, source);
         }
-        return _createObject(name, model.schema.schemaDefinition, source);
+        return _createObject(entitySchema, entityState, source);
     }
 };
 
-function _createObject(name, schemaDefinition, source) {
+function _createObject(schema, entityState, source) {
     var newObj = {
-        __entityType__: name
+        __entityMetadata__: {
+            entityState: entityState,
+            schema: schema
+        }
     };
-    for (var prop in schemaDefinition) {
+    for (var prop in schema.definition) {
         newObj[prop] = source[prop];
     }
     return newObj;
 }
 
-function _getBaseModel(name) {
+function _getEntitySchema(name) {
     var baseModel = null;
-    models.forEach(function (model) {
+    entitySchemas.forEach(function (model) {
         if (model.name = name) {
             baseModel = model;
             return;
