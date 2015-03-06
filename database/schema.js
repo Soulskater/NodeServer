@@ -40,5 +40,16 @@ module.exports = function schema(name, definition) {
             }
             return result.isValid;
         }
-    }
+    };
+
+    this.hasIdentityColumn= function () {
+        var hasIdentityColumn = false;
+        for(var prop in this.definition){
+            if(this.definition[prop].isIdentity === true){
+                hasIdentityColumn = true;
+                break;
+            }
+        }
+        return hasIdentityColumn;
+    };
 };

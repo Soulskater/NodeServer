@@ -28,5 +28,36 @@ var userSchema = new schema("User",
             isRequired: true,
             type: types.string
         }
+        ,
+        blogID: {
+            isKeyField: false,
+            isRequired: true,
+            reference: {
+                name: "Blog",
+                referencedField: "blogID"
+            },
+            type: types.number
+        }
     });
+
+/*declare @username
+declare @blog table ( blogID int, name varchar( 30 ))
+declare @user table ( blogid int, username varchar( 100 ) )
+
+insert dbo.[Blog](name)
+output inserted.blogid, inserted.name into @table( id, name )
+select 'Béla blog2'
+union all
+select 'Béla blog3'
+
+insert dbo.[User](username)
+output inserted.username into @table( username )
+select 'Béla blog2'
+union all
+select 'Béla blog3'
+
+insert into dbo.[User](username,password,token,blogid)
+select 'Béla' + cast( t.blogid as varchar( 1000 ) ) , 'tesdgst', 'belatoken', t.blogid
+from @table t*/
+
 factory.registerSchema(userSchema);
