@@ -21,8 +21,8 @@ module.exports = function () {
     this.addObject = function (name, object) {
         var model = modelFactory.createObject(name, entityState.new, object);
 
-        var script = scriptGenerator.createInsert(model);
-        _executeQuery(script).then(function (resultSet) {
+        var result = scriptGenerator.createInsert(model, true);
+        _executeQuery(result.script).then(function (resultSet) {
             var identityRecord = resultSet[0];
             if (identityRecord) {
                 console.dir(identityRecord.ObjectID);
@@ -34,16 +34,17 @@ module.exports = function () {
         });
     };
 
-    this.getObjects = function () {
-        var query = {};
-        query.where("User", function (user) {
-            return user.userName === "gmeszaros" && user.password;
+    this.getObjects = function (schemaName, filters) {
+        var entitySchema = modelFactory.getEntitySchema(schemaName);
+        var script = scriptGenerator.createSelect(entitySchema, filters);
+
+        _executeQuery(script).then(function (dbResultSet) {
+            var entitySet = [];
+            dbResultSet.forEach(function (dbResult) {
+                var entitySource = _buildEntity(entitySchema, dbResult);
+                entitySet.push(modelFactory.createObject(entitySchema.name, entityState.unchanged, entitySource));
+            });
         });
-        /*.prop("name")
-         .equalsTo("gmeszaros")
-         .and()
-         .prop("password")
-         .equalsTo("admin");*/
     };
 
     function _executeQuery(commandText) {
@@ -66,5 +67,21 @@ module.exports = function () {
             });
         });
         return deferred.promise;
+    }
+
+    function _buildEntity(entitySchema, dbResult) {
+        var entity = {};
+        entitySchema.definition.forEach(function (propertyDescriptor) {
+            if (propertyDescriptor.reference) {
+                var referencedSchema = modelFactory.getEntitySchema(propertyDescriptor.reference.name);
+                var referencedObject = _buildEntity(referencedSchema, dbResult);
+                entity[propertyDescriptor.reference.referencedFieldName] = referencedObject;
+            }
+            else {
+                var fieldName = util.format("%s.%s", entitySchema.name, propertyDescriptor.name);
+                entity[propertyDescriptor.name] = dbResult[fieldName];
+            }
+        });
+        return entity;
     }
 };

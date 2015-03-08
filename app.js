@@ -11,11 +11,15 @@ var userModel = require('./models/User');
 var dbContext = require('./database/dbContext');
 
 var context = new dbContext();
-context.addObject("User", {
-    userName: "aladár",
-    password: "mypass",
-    token: "token12345"
-});
+/*, {
+ userName: "aladár",
+ password: "mypass",
+ token: "token12345",
+ blog: {
+ name: "tesztBlog"
+ }
+ }*/
+context.getObjects("User", [{field: "userName", value: "'gmeszaros'"}]);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

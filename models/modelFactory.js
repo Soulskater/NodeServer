@@ -17,7 +17,8 @@ module.exports = {
             console.error("Given source is invalid for model " + name, source);
         }
         return _createObject(entitySchema, entityState, source);
-    }
+    },
+    getEntitySchema: _getEntitySchema
 };
 
 function _createObject(schema, entityState, source) {
@@ -27,16 +28,21 @@ function _createObject(schema, entityState, source) {
             schema: schema
         }
     };
-    for (var prop in schema.definition) {
-        newObj[prop] = source[prop];
-    }
+    schema.definition.forEach(function (propertyDescriptor) {
+        if (propertyDescriptor.reference) {
+            var referenceSchema = _getEntitySchema(propertyDescriptor.reference.name);
+            newObj[propertyDescriptor.reference.referencedFieldName] = _createObject(referenceSchema, entityState, source[propertyDescriptor.reference.referencedFieldName]);
+        } else {
+            newObj[propertyDescriptor.name] = source[propertyDescriptor.name];
+        }
+    });
     return newObj;
 }
 
 function _getEntitySchema(name) {
     var baseModel = null;
     entitySchemas.forEach(function (model) {
-        if (model.name = name) {
+        if (model.name === name) {
             baseModel = model;
             return;
         }

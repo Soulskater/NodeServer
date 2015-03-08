@@ -10,46 +10,86 @@ module.exports = function schema(name, definition) {
 
     this.validate = function (object) {
         var isValid = true;
-        for (var prop in definition) {
-            var propertyDescriptor = definition[prop];
-            if (!validateProperty(prop, propertyDescriptor, object)) {
+        this.definition.forEach(function (propertyDescriptor) {
+            if (!validateProperty(propertyDescriptor, object)) {
                 isValid = false;
-                break;
+                return;
             }
-        }
+        });
         return isValid;
 
-        function validateProperty(propertyName, descriptor, object) {
+        function validateProperty(descriptor, object) {
             if (descriptor.isIdentity === true) {
                 return true;
             }
-            var sourceProp = toLowerFirstLetter(propertyName);
-            var propVal = object[sourceProp];
-            if (propVal === undefined) {
-                console.warn(util.format("Property mismatch, expected '%s'", sourceProp));
-                return false;
+
+            if (descriptor.reference) {
+                return _validateReference(descriptor, object);
+            }
+            else {
+                return _validateSimpleValue(descriptor, object);
             }
 
-            function toLowerFirstLetter(text) {
-                return text.charAt(0).toLowerCase() + text.substring(1);
+            function _validateReference(descriptor, object) {
+                var referencedEntity = object[descriptor.reference.referencedFieldName];
+                if (referencedEntity) {
+                    /*if (!referencedEntity.__entityMetadata__) {
+                        console.warn(util.format("Reference type mismatch, expected '%s', got not registered entity: ", descriptor.reference.name), referencedEntity);
+                        return false;
+                    }
+                    if (referencedEntity.__entityMetadata__.schema.name !== descriptor.reference.name) {
+                        console.warn(util.format("Reference type mismatch, expected '%s', got '%s'", descriptor.reference.name, referencedEntity.__entityMetadata__.schema.name));
+                        return false;
+                    }*/
+                    return true;
+                }
+                if (descriptor.isRequired) {
+                    console.warn(util.format("Reference '%s' is required!", descriptor.reference.name));
+                    return false
+                }
+                return true;
             }
 
-            var result = descriptor.type(propVal, descriptor.isRequired);
-            if (!result.isValid) {
-                console.error(util.format("Property '%s' is invalid, the reason: ", sourceProp), result.value);
+            function _validateSimpleValue(descriptor, object) {
+                var propVal = object[descriptor.name];
+
+                if (propVal === undefined) {
+                    console.warn(util.format("Property mismatch, expected '%s'", descriptor.name));
+                    return false;
+                }
+
+                var result = descriptor.type(propVal, descriptor.isRequired);
+                if (!result.isValid) {
+                    console.error(util.format("Property '%s' is invalid, the reason: ", descriptor.name), result.value);
+                }
+                return result.isValid;
             }
-            return result.isValid;
         }
     };
 
-    this.hasIdentityColumn= function () {
+    this.hasIdentityColumn = function () {
         var hasIdentityColumn = false;
-        for(var prop in this.definition){
-            if(this.definition[prop].isIdentity === true){
+        this.definition.forEach(function (property) {
+            if (property.isIdentity === true) {
                 hasIdentityColumn = true;
-                break;
+                return;
             }
-        }
+        });
         return hasIdentityColumn;
     };
+
+    this.getKeyFieldColumn = function () {
+        var keyFieldColumn = {};
+        this.definition.forEach(function (property) {
+            if (property.isKeyField === true) {
+                keyFieldColumn = property;
+                return;
+            }
+        });
+        return keyFieldColumn;
+    };
+
+    function _toLowerFirstLetter(text) {
+        return text.charAt(0).toLowerCase() + text.substring(1);
+    }
 };

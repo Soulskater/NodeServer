@@ -6,58 +6,79 @@ var types = require('../database/objectTypes');
 var factory = require('./modelFactory');
 
 var userSchema = new schema("User",
-    {
-        userID: {
+    [
+        {
+            name: "userID",
             isKeyField: true,
             isIdentity: true,
             isRequired: true,
             type: types.number
         },
-        userName: {
+        {
+            name: "userName",
             isKeyField: false,
             isRequired: true,
             type: types.string
         },
-        password: {
+        {
+            name: "password",
             isKeyField: false,
             isRequired: true,
             type: types.string
         },
-        token: {
+        {
+            name: "token",
             isKeyField: false,
             isRequired: true,
             type: types.string
-        }
-        ,
-        blogID: {
+        },
+        {
+            name: "blogID",
             isKeyField: false,
             isRequired: true,
             reference: {
                 name: "Blog",
-                referencedField: "blogID"
+                referencedFieldName: "blog"
             },
             type: types.number
         }
-    });
+    ]);
 
+var blogSchema = new schema("Blog",
+    [
+        {
+            name: "blogID",
+            isKeyField: true,
+            isIdentity: true,
+            isRequired: true,
+            type: types.number
+        },
+        {
+            name: "name",
+            isKeyField: false,
+            isRequired: true,
+            type: types.string
+        }
+    ]);
 /*declare @username
-declare @blog table ( blogID int, name varchar( 30 ))
-declare @user table ( blogid int, username varchar( 100 ) )
+ declare @blog table ( blogID int, name varchar( 30 ))
+ declare @user table ( blogid int, username varchar( 100 ) )
 
-insert dbo.[Blog](name)
-output inserted.blogid, inserted.name into @table( id, name )
-select 'Béla blog2'
-union all
-select 'Béla blog3'
+ insert dbo.[Blog](name)
+ output inserted.blogid, inserted.name into @table( id, name )
+ select 'Béla blog2'
+ union all
+ select 'Béla blog3'
 
-insert dbo.[User](username)
-output inserted.username into @table( username )
-select 'Béla blog2'
-union all
-select 'Béla blog3'
+ insert dbo.[User](username)
+ output inserted.username into @table( username )
+ select 'Béla blog2'
+ union all
+ select 'Béla blog3'
 
-insert into dbo.[User](username,password,token,blogid)
-select 'Béla' + cast( t.blogid as varchar( 1000 ) ) , 'tesdgst', 'belatoken', t.blogid
-from @table t*/
+ insert into dbo.[User](username,password,token,blogid)
+ select 'Béla' + cast( t.blogid as varchar( 1000 ) ) , 'tesdgst', 'belatoken', t.blogid
+ from @table t*/
 
 factory.registerSchema(userSchema);
+factory.registerSchema(blogSchema);
