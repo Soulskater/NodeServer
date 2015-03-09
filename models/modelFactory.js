@@ -11,9 +11,10 @@ module.exports = {
             console.warn("The model is already registered, got " + schema.name);
         }
     },
-    createObject: function (name, entityState, source) {
+    createEntity: function (name, entityState, source) {
         var entitySchema = _getEntitySchema(name);
         if (!entitySchema.validate(source)) {
+            throw new Error("Given source is invalid for model " + name, source);
             console.error("Given source is invalid for model " + name, source);
         }
         return _createObject(entitySchema, entityState, source);
@@ -48,7 +49,9 @@ function _getEntitySchema(name) {
         }
     });
     if (!baseModel) {
-        console.error("The model with name " + name + "is not registered!");
+        var errorMsg = util.format("The model with name %s is not registered!", name);
+        throw new Error(errorMsg);
+        console.error(errorMsg);
     }
     return baseModel;
 }

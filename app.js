@@ -7,19 +7,29 @@ var routeConfig = require('./routeConfig.js');
 
 var app = express();
 var routes = routeConfig(app);
-var userModel = require('./models/User');
+var factory = require('./models/modelFactory');
+var entityState = require('./database/entityState');
 var dbContext = require('./database/dbContext');
 
 var context = new dbContext();
-/*, {
- userName: "aladár",
- password: "mypass",
- token: "token12345",
- blog: {
- name: "tesztBlog"
- }
- }*/
-context.getObjects("User", [{field: "userName", value: "'gmeszaros'"}]);
+
+/*context.addEntity("User", {
+    userName: "aladár",
+    password: "mypass",
+    token: "token12345",
+    blog: {
+        name: "myTestBlog"
+    }
+});*/
+context.getObjects("User", [{field: "userName", value: "'gmeszaros'"}]).then(function (entitySet) {
+    entitySet.forEach(function (entity) {
+        entity.userName = "gmeszaros2";
+        entity.blog = factory.createEntity("Blog", entityState.new, {
+            name: "updateTestBlog"
+        });
+        context.updateEntity(entity);
+    });
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

@@ -18,8 +18,8 @@ module.exports = function () {
         }
     }, appConfig.dbConnection);
 
-    this.addObject = function (name, object) {
-        var model = modelFactory.createObject(name, entityState.new, object);
+    this.addEntity = function (name, object) {
+        var model = modelFactory.createEntity(name, entityState.new, object);
 
         var result = scriptGenerator.createInsert(model, true);
         _executeQuery(result.script).then(function (resultSet) {
@@ -34,17 +34,46 @@ module.exports = function () {
         });
     };
 
+    this.updateEntity = function (entity) {
+        var result = scriptGenerator.createUpdate(entity);
+        _executeQuery(result.script).then(function (result) {
+            console.dir(result);
+        });
+    };
+
+    this.deleteEntity = function (entity) {
+        var deferred = q.defer();
+        var script = scriptGenerator.createDelete(entity);
+
+        _executeQuery(script)
+            .then(function (result) {
+                entity.__entityMetadata__.entityState = entityState.deleted;
+                deferred.resolve(result);
+            })
+            .fail(function (err) {
+                deferred.reject(err);
+            });
+        return deferred.promise;
+    };
+
     this.getObjects = function (schemaName, filters) {
+        var deferred = q.defer();
         var entitySchema = modelFactory.getEntitySchema(schemaName);
         var script = scriptGenerator.createSelect(entitySchema, filters);
 
-        _executeQuery(script).then(function (dbResultSet) {
-            var entitySet = [];
-            dbResultSet.forEach(function (dbResult) {
-                var entitySource = _buildEntity(entitySchema, dbResult);
-                entitySet.push(modelFactory.createObject(entitySchema.name, entityState.unchanged, entitySource));
+        _executeQuery(script)
+            .then(function (dbResultSet) {
+                var entitySet = [];
+                dbResultSet.forEach(function (dbResult) {
+                    var entitySource = _buildEntity(entitySchema, dbResult);
+                    entitySet.push(modelFactory.createEntity(entitySchema.name, entityState.unchanged, entitySource));
+                });
+                deferred.resolve(entitySet);
+            })
+            .fail(function (err) {
+                deferred.reject(err);
             });
-        });
+        return deferred.promise;
     };
 
     function _executeQuery(commandText) {

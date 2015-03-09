@@ -2,6 +2,7 @@
  * Created by MCG on 2015.03.01..
  */
 var util = require('util');
+var factory = require('../models/modelFactory');
 
 module.exports = function schema(name, definition) {
 
@@ -33,14 +34,8 @@ module.exports = function schema(name, definition) {
             function _validateReference(descriptor, object) {
                 var referencedEntity = object[descriptor.reference.referencedFieldName];
                 if (referencedEntity) {
-                    /*if (!referencedEntity.__entityMetadata__) {
-                        console.warn(util.format("Reference type mismatch, expected '%s', got not registered entity: ", descriptor.reference.name), referencedEntity);
-                        return false;
-                    }
-                    if (referencedEntity.__entityMetadata__.schema.name !== descriptor.reference.name) {
-                        console.warn(util.format("Reference type mismatch, expected '%s', got '%s'", descriptor.reference.name, referencedEntity.__entityMetadata__.schema.name));
-                        return false;
-                    }*/
+                    var referenceSchema = factory.getEntitySchema(descriptor.reference.name);
+                    return referenceSchema.validate(referencedEntity);
                     return true;
                 }
                 if (descriptor.isRequired) {
@@ -88,8 +83,4 @@ module.exports = function schema(name, definition) {
         });
         return keyFieldColumn;
     };
-
-    function _toLowerFirstLetter(text) {
-        return text.charAt(0).toLowerCase() + text.substring(1);
-    }
 };
