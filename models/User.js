@@ -5,7 +5,7 @@ var schema = require("../database/entitySchema");
 var types = require('../database/objectTypes');
 var factory = require('./modelFactory');
 
-var userSchema = new entitySchema("User",
+var userSchema = new schema("User",
     [
         {
             name: "userID",
@@ -44,7 +44,7 @@ var userSchema = new entitySchema("User",
         }
     ]);
 
-var blogSchema = new entitySchema("Blog",
+var blogSchema = new schema("Blog",
     [
         {
             name: "blogID",
