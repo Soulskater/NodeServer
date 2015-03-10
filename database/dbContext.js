@@ -8,7 +8,7 @@ var modelFactory = require("../models/modelFactory");
 var sql = require('mssql');
 var entityState = require('./entityState');
 var extend = require('node.extend');
-var scriptGenerator = require('./scriptGenerator');
+var scriptGenerator = require('./scriptBuilder');
 
 module.exports = function () {
 

@@ -1,11 +1,11 @@
 /**
  * Created by MCG on 2015.03.01..
  */
-var schema = require("../database/schema");
+var schema = require("../database/entitySchema");
 var types = require('../database/objectTypes');
 var factory = require('./modelFactory');
 
-var userSchema = new schema("User",
+var userSchema = new entitySchema("User",
     [
         {
             name: "userID",
@@ -44,7 +44,7 @@ var userSchema = new schema("User",
         }
     ]);
 
-var blogSchema = new schema("Blog",
+var blogSchema = new entitySchema("Blog",
     [
         {
             name: "blogID",
@@ -60,25 +60,6 @@ var blogSchema = new schema("Blog",
             type: types.string
         }
     ]);
-/*declare @username
- declare @blog table ( blogID int, name varchar( 30 ))
- declare @user table ( blogid int, username varchar( 100 ) )
-
- insert dbo.[Blog](name)
- output inserted.blogid, inserted.name into @table( id, name )
- select 'Béla blog2'
- union all
- select 'Béla blog3'
-
- insert dbo.[User](username)
- output inserted.username into @table( username )
- select 'Béla blog2'
- union all
- select 'Béla blog3'
-
- insert into dbo.[User](username,password,token,blogid)
- select 'Béla' + cast( t.blogid as varchar( 1000 ) ) , 'tesdgst', 'belatoken', t.blogid
- from @table t*/
 
 factory.registerSchema(userSchema);
 factory.registerSchema(blogSchema);
