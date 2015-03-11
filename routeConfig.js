@@ -8,7 +8,7 @@ var routes = [
         content: require('./services/index')
     },
     {
-        path: '/authenticate',
+        path: '/user',
         content: require('./services/account/authentication')
     }
 ];

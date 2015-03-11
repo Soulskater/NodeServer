@@ -18,29 +18,6 @@ module.exports = function () {
         }
     }, appConfig.dbConnection);
 
-    this.addEntity = function (name, object) {
-        var model = modelFactory.createEntity(name, entityState.new, object);
-
-        var result = scriptGenerator.createInsert(model, true);
-        _executeQuery(result.script).then(function (resultSet) {
-            var identityRecord = resultSet[0];
-            if (identityRecord) {
-                console.dir(identityRecord.ObjectID);
-                return identityRecord.ObjectID;
-            }
-            else {
-                return null;
-            }
-        });
-    };
-
-    this.updateEntity = function (entity) {
-        var result = scriptGenerator.createUpdate(entity);
-        _executeQuery(result.script).then(function (result) {
-            console.dir(result);
-        });
-    };
-
     this.deleteEntity = function (entity) {
         var deferred = q.defer();
         var script = scriptGenerator.createDelete(entity);
@@ -54,6 +31,17 @@ module.exports = function () {
                 deferred.reject(err);
             });
         return deferred.promise;
+    };
+
+    this.saveEntity = function (entity) {
+        if (entity.__entityMetadata__.entityState === entityState.new) {
+            return _addEntity(entity);
+        }
+        else {
+            if (entity.__entityMetadata__.entityState !== entityState.deleted) {
+                return _updateEntity(entity);
+            }
+        }
     };
 
     this.getObjects = function (schemaName, filters) {
@@ -74,6 +62,30 @@ module.exports = function () {
                 deferred.reject(err);
             });
         return deferred.promise;
+    };
+
+    function _addEntity(entity) {
+        var deferred = q.defer();
+        var result = scriptGenerator.createInsert(entity, true);
+        _executeQuery(result.script)
+            .then(function (resultSet) {
+                var identityRecord = resultSet[0];
+                if (identityRecord) {
+                    deferred.resolve(identityRecord.ObjectID);
+                }
+                else {
+                    deferred.resolve();
+                }
+            })
+            .fail(function (err) {
+                deferred.reject(err);
+            });
+        return deferred.promise;
+    };
+
+    function _updateEntity(entity) {
+        var result = scriptGenerator.createUpdate(entity);
+        return _executeQuery(result.script);
     };
 
     function _executeQuery(commandText) {

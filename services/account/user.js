@@ -2,43 +2,11 @@ var express = require('express');
 var sql = require('mssql');
 var extend = require('node.extend');
 var q = require('Q');
-var appConfig = require('../config/app.config.js');
-var userModelFormatter = require('../models/User');
-
-var dbConfig = extend({
-    options: {
-        encrypt: true // Use this if you're on Windows Azure
-    }
-}, appConfig.dbConnection);
+var appConfig = require('../../config/app.config.js');
+var userModelFormatter = require('../../models/userContext');
 
 module.exports = {
-    getUser: function (userName, password) {
-        var deferred = q.defer();
-        var connection = new sql.Connection(dbConfig, function (err) {
-            if (err) {
-                deferred.reject(err);
-                console.warn(err);
-            }
 
-            var request = new sql.Request(connection);
-            request.query("select top 1 * from dbo.[User] where username='" + userName + "' and password='" + password + "'", function (err, resultSet) {
-                if (err) {
-                    deferred.reject(err);
-                    console.warn(err);
-                }
-                else {
-                    if (resultSet.length == 0) {
-                        console.warn("The user with the given credentials does not exist in the database!(" + userName + "," + password + ")");
-                        deferred.resolve(null);
-                    }
-                    else {
-                        deferred.resolve(userModelFormatter(resultSet[0]));
-                    }
-                }
-            });
-        });
-        return deferred.promise;
-    },
     saveUser: function (userName, password) {
         var deferred = q.defer();
         var connection = new sql.Connection(dbConfig, function (err) {

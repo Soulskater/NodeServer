@@ -59,12 +59,12 @@ var generator = {
             if (propertyDescriptor.reference) {
                 var referencedEntity = entity[propertyDescriptor.reference.referencedFieldName];
                 var referenceIdValue = null;
-                if(referencedEntity.__entityMetadata__.entityState === entityState.new){
+                if (referencedEntity.__entityMetadata__.entityState === entityState.new) {
                     var referenceResult = generator.createInsert(referencedEntity);
                     script += referenceResult.script;
                     referenceIdValue = referenceResult.idValue;
                 }
-                if(referencedEntity.__entityMetadata__.entityState === entityState.unchanged){
+                if (referencedEntity.__entityMetadata__.entityState === entityState.unchanged) {
                     var referenceResult = generator.createUpdate(referencedEntity);
                     script += referenceResult.script;
                     referenceIdValue = referenceResult.idValue;
@@ -91,9 +91,9 @@ var generator = {
             return descriptor.isIdentity === true;
         }
     },
-    createSelect: function (entitySchema, filters) {
+    createSelect: function (entitySchema, filterObject) {
         var tableName = _formatTableName(entitySchema.name);
-        filters = filters || [];
+        filterObject = filterObject || {};
         var query = squel.select().from(tableName);
 
         var fields = _getAllFields(entitySchema, []);
@@ -113,9 +113,9 @@ var generator = {
             }
         });
 
-        filters.forEach(function (filter) {
-            query.where(util.format("%s=%s", filter.field, filter.value));
-        });
+        for (var filterName in filterObject) {
+            query.where(util.format("%s=%s", filterName, filterObject[filterName]));
+        }
 
         return query.toString();
 

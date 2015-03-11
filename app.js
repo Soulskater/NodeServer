@@ -11,26 +11,6 @@ var factory = require('./models/modelFactory');
 var entityState = require('./database/entityState');
 var dbContext = require('./database/dbContext');
 
-var context = new dbContext();
-
-/*context.addEntity("User", {
-    userName: "aladár",
-    password: "mypass",
-    token: "token12345",
-    blog: {
-        name: "myTestBlog"
-    }
-});*/
-context.getObjects("User", [{field: "userName", value: "'gmeszaros'"}]).then(function (entitySet) {
-    entitySet.forEach(function (entity) {
-        entity.userName = "gmeszaros2";
-        entity.blog = factory.createEntity("Blog", entityState.new, {
-            name: "updateTestBlog"
-        });
-        context.updateEntity(entity);
-    });
-});
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 /*app.set('view engine', 'jade');*/
