@@ -27,6 +27,9 @@ router.post('/authenticate', function (req, res) {
     context.getUser(req.body.userName, req.body.password)
         .then(function (user) {
             if (user) {
+                user.token = jwt.sign(user, (new Date).toString());
+                user.lastTokenCreated = new Date();
+                context.saveEntity(user);
                 res.json({
                     type: true,
                     data: user,
@@ -62,7 +65,8 @@ router.post('/signin', function (req, res) {
                     userName: req.body.userName,
                     password: req.body.password
                 });
-                userEntity.token = jwt.sign(user, "micimackó");
+                userEntity.token = jwt.sign(user, (new Date).toString());
+                userEntity.lastTokenCreated = new Date();
                 context.saveEntity(userEntity)
                     .then(function () {
                         res.json({

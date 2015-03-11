@@ -33,6 +33,12 @@ var userSchema = new schema("User",
             isKeyField: false,
             isRequired: false,
             type: types.string
+        },
+        {
+            name: "lastTokenCreated",
+            isKeyField: false,
+            isRequired: false,
+            type: types.date
         }
     ]);
 factory.registerSchema(userSchema);
