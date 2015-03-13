@@ -3,12 +3,18 @@
  */
 var express = require('express');
 var router = express.Router();
+var jwt = require("jsonwebtoken");
 var userContext = require("../../models/userContext");
 
-router.get('/', function (req, res) {
+router.get('/', _authorizeUser, function (req, res) {
     var context = new userContext();
     context.getUserByToken(req.token)
         .then(function (user) {
+            var timeoutSeconds = 1200;
+            var currentDate = new Date();
+            if ((currentDate - user.lastTokenCreated) / 1000 > timeoutSeconds) {
+                res.sendStatus(403);
+            }
             res.json({
                 type: true,
                 data: user
@@ -22,6 +28,19 @@ router.get('/', function (req, res) {
         });
 });
 
+function _authorizeUser(req, res, next) {
+    var bearerToken;
+    var bearerHeader = req.headers["authorization"];
+    if (typeof bearerHeader !== 'undefined') {
+        var bearer = bearerHeader.split(" ");
+        bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+    } else {
+        res.sendStatus(403);
+    }
+}
+
 router.post('/authenticate', function (req, res) {
     var context = new userContext();
     context.getUser(req.body.userName, req.body.password)
@@ -29,7 +48,7 @@ router.post('/authenticate', function (req, res) {
             if (user) {
                 user.token = jwt.sign(user, (new Date).toString());
                 user.lastTokenCreated = new Date();
-                context.saveEntity(user);
+                context.saveUser(user);
                 res.json({
                     type: true,
                     data: user,

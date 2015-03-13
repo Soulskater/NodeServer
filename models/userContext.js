@@ -1,9 +1,11 @@
 /**
  * Created by MCG on 2015.03.01..
  */
+var q = require('Q');
+var util = require('util');
 var schema = require("../database/entitySchema");
 var types = require('../database/objectTypes');
-var dbContext = require('../database/entityState');
+var dbContext = require('../database/dbContext');
 var factory = require('./modelFactory');
 var entityState = require('../database/entityState');
 
@@ -53,7 +55,7 @@ module.exports = function userContext() {
 
     this.getUser = function (userName, password) {
         var deferred = q.defer();
-        context.getObjects("User", {userName: userName, password: password})
+        context.getObjects("User", {userName: util.format("'%s'", userName), password: util.format("'%s'", password)})
             .then(function (resultSet) {
                 if (resultSet.length == 0) {
                     console.warn("The user with the given credentials does not exist in the database!(" + userName + "," + password + ")");
@@ -72,7 +74,7 @@ module.exports = function userContext() {
 
     this.getUserByToken = function (token) {
         var deferred = q.defer();
-        context.getObjects("User", { token: token })
+        context.getObjects("User", { token: util.format("'%s'", token) })
             .then(function (resultSet) {
                 if (resultSet.length == 0) {
                     console.warn("The user with the given token does not exist in the database!");
@@ -90,6 +92,6 @@ module.exports = function userContext() {
     };
 
     this.saveUser = function (userEntity) {
-        context.saveUser(userEntity);
+        context.saveEntity(userEntity);
     };
 };

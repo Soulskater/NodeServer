@@ -38,7 +38,7 @@ module.exports = {
         }
         return {
             isValid: true,
-            value: value
+            value: moment(value).toDate()
         };
     }
 };

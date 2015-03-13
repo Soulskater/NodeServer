@@ -2,6 +2,7 @@
  * Created by gmeszaros on 3/6/2015.
  */
 var squel = require("squel");
+var moment = require('moment');
 var sqlKeywords = require('./reservedKeywords');
 var util = require('util');
 var factory = require('../models/modelFactory');
@@ -149,6 +150,11 @@ var generator = {
         return query.toString();
     }
 };
+
+/* Tell Squel how to handle Date objects */
+squel.registerValueHandler(Date, function(date) {
+    return moment(date).format("YYYY-MM-D LTS");
+});
 
 module.exports = generator;
 
