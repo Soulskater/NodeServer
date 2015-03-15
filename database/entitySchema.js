@@ -48,7 +48,7 @@ module.exports = function schema(name, definition) {
             function _validateSimpleValue(descriptor, object) {
                 var propVal = object[descriptor.name];
 
-                if (propVal === undefined) {
+                if (descriptor.isRequired && !object.hasOwnProperty(descriptor.name)) {
                     console.warn(util.format("Property mismatch, expected '%s'", descriptor.name));
                     return false;
                 }

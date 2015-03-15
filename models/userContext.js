@@ -39,10 +39,11 @@ var userSchema = new schema("User",
         {
             name: "lastTokenCreated",
             isKeyField: false,
-            isRequired: false,
+            isRequired: true,
             type: types.date
         }
     ]);
+
 factory.registerSchema(userSchema);
 
 module.exports = function userContext() {
@@ -58,7 +59,8 @@ module.exports = function userContext() {
         context.getObjects("User", {userName: util.format("'%s'", userName), password: util.format("'%s'", password)})
             .then(function (resultSet) {
                 if (resultSet.length == 0) {
-                    console.warn("The user with the given credentials does not exist in the database!(" + userName + "," + password + ")");
+                    var message = "The user with the given credentials does not exist in the database!(" + userName + "," + password + ")";
+                    console.warn(message);
                     deferred.resolve(null);
                 }
                 else {
@@ -74,11 +76,12 @@ module.exports = function userContext() {
 
     this.getUserByToken = function (token) {
         var deferred = q.defer();
-        context.getObjects("User", { token: util.format("'%s'", token) })
+        context.getObjects("User", {token: util.format("'%s'", token)})
             .then(function (resultSet) {
                 if (resultSet.length == 0) {
-                    console.warn("The user with the given token does not exist in the database!");
-                    deferred.resolve(null);
+                    var message = "The user with the given token does not exist in the database!";
+                    console.warn(message);
+                    deferred.reject(message);
                 }
                 else {
                     deferred.resolve(resultSet[0]);
@@ -92,6 +95,6 @@ module.exports = function userContext() {
     };
 
     this.saveUser = function (userEntity) {
-        context.saveEntity(userEntity);
+        return context.saveEntity(userEntity);
     };
 };

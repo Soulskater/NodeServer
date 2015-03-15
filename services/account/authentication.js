@@ -46,7 +46,7 @@ router.post('/authenticate', function (req, res) {
     context.getUser(req.body.userName, req.body.password)
         .then(function (user) {
             if (user) {
-                user.token = jwt.sign(user, (new Date).toString());
+                user.token = jwt.sign(user, (new Date()).toString());
                 user.lastTokenCreated = new Date();
                 context.saveUser(user);
                 res.json({
@@ -82,11 +82,12 @@ router.post('/signin', function (req, res) {
             } else {
                 var userEntity = context.createUser({
                     userName: req.body.userName,
-                    password: req.body.password
+                    password: req.body.password,
+                    lastTokenCreated: new Date()
                 });
-                userEntity.token = jwt.sign(user, (new Date).toString());
-                userEntity.lastTokenCreated = new Date();
-                context.saveEntity(userEntity)
+                userEntity.token = jwt.sign(userEntity, (userEntity.lastTokenCreated).toString());
+
+                context.saveUser(userEntity)
                     .then(function () {
                         res.json({
                             type: true,

@@ -1,6 +1,8 @@
 /**
  * Created by gmeszaros on 3/3/2015.
  */
+var util = require('util');
+
 var entitySchemas = [];
 module.exports = {
     registerSchema: function (schema) {
