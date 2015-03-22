@@ -4,15 +4,16 @@
 var express = require('express');
 var router = express.Router();
 var jwt = require("jsonwebtoken");
-var userContext = require("../../models/userContext");
+var authorize = require('../../services/authorize');
+var jsonHelper = require('../../services/jsonHelper');
+var userContext = require("../../services/user/userContext");
 
-router.get('/', _authorizeUser, function (req, res) {
+router.get('/', authorize, function (req, res) {
     var context = new userContext();
     context.getUserByToken(req.token)
         .then(function (user) {
-            var timeoutSeconds = 1200;
             var currentDate = new Date();
-            if ((currentDate - user.lastTokenCreated) / 1000 > timeoutSeconds) {
+            if (currentDate - user.tokenExpiresIn <= 0) {
                 res.sendStatus(403);
             }
             res.json({
@@ -28,31 +29,20 @@ router.get('/', _authorizeUser, function (req, res) {
         });
 });
 
-function _authorizeUser(req, res, next) {
-    var bearerToken;
-    var bearerHeader = req.headers["authorization"];
-    if (typeof bearerHeader !== 'undefined') {
-        var bearer = bearerHeader.split(" ");
-        bearerToken = bearer[1];
-        req.token = bearerToken;
-        next();
-    } else {
-        res.sendStatus(403);
-    }
-}
-
 router.post('/authenticate', function (req, res) {
     var context = new userContext();
     context.getUser(req.body.userName, req.body.password)
         .then(function (user) {
             if (user) {
                 user.token = jwt.sign(user, (new Date()).toString());
-                user.lastTokenCreated = new Date();
+                user.tokenExpiresIn = new Date();
+                user.tokenExpiresIn.setMinutes(user.tokenExpiresIn.getMinutes() + 30);
                 context.saveUser(user);
                 res.json({
                     type: true,
-                    data: user,
-                    token: user.token
+                    token: user.token,
+                    tokenExpiresIn: user.tokenExpiresIn,
+                    data: jsonHelper.serializeEntity(user)
                 });
             } else {
                 res.json({
@@ -80,12 +70,14 @@ router.post('/signin', function (req, res) {
                     data: "User already exists!"
                 });
             } else {
+                var expireDate = new Date();
+                expireDate.setMinutes(expireDate.getMinutes() + 30);
                 var userEntity = context.createUser({
                     userName: req.body.userName,
                     password: req.body.password,
-                    lastTokenCreated: new Date()
+                    tokenExpiresIn: expireDate
                 });
-                userEntity.token = jwt.sign(userEntity, (userEntity.lastTokenCreated).toString());
+                userEntity.token = jwt.sign(userEntity, (userEntity.tokenExpiresIn).toString());
 
                 context.saveUser(userEntity)
                     .then(function () {

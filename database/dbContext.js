@@ -110,16 +110,22 @@ module.exports = function () {
         return deferred.promise;
     }
 
-    function _buildEntity(entitySchema, dbResult) {
+    function _buildEntity(entitySchema, dbResult, referenceSchemaName, referenceFieldName) {
         var entity = {};
         entitySchema.definition.forEach(function (propertyDescriptor) {
             if (propertyDescriptor.reference) {
                 var referencedSchema = modelFactory.getEntitySchema(propertyDescriptor.reference.name);
-                var referencedObject = _buildEntity(referencedSchema, dbResult);
+                var referencedObject = _buildEntity(referencedSchema, dbResult, entitySchema.name, propertyDescriptor.reference.referencedFieldName);
                 entity[propertyDescriptor.reference.referencedFieldName] = referencedObject;
             }
             else {
-                var fieldName = util.format("%s.%s", entitySchema.name, propertyDescriptor.name);
+                var fieldName = "";
+                if (referenceSchemaName) {
+                    fieldName = util.format("%s.%s.%s", referenceSchemaName, referenceFieldName, propertyDescriptor.name);
+                }
+                else {
+                    fieldName = util.format("%s.%s", entitySchema.name, propertyDescriptor.name);
+                }
                 entity[propertyDescriptor.name] = dbResult[fieldName];
             }
         });

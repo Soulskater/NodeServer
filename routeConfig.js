@@ -8,8 +8,20 @@ var routes = [
         content: require('./services/index')
     },
     {
-        path: '/user',
-        content: require('./services/account/authentication')
+        path: '/api/user',
+        content: require('./api/user/authenticationApi')
+    },
+    {
+        path: '/api/projects',
+        content: require('./api/projects/projectsApi')
+    },
+    {
+        path: '/api/blog',
+        content: require('./api/blog/blogApi')
+    },
+    {
+        path: '/api/blog/comment',
+        content: require('./api/blog/comment/blogCommentApi')
     }
 ];
 

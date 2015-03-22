@@ -3,11 +3,11 @@
  */
 var q = require('Q');
 var util = require('util');
-var schema = require("../database/entitySchema");
-var types = require('../database/objectTypes');
-var dbContext = require('../database/dbContext');
-var factory = require('./modelFactory');
-var entityState = require('../database/entityState');
+var schema = require("../../database/entitySchema");
+var types = require('../../database/objectTypes');
+var dbContext = require('../../database/dbContext');
+var factory = require('./../../models/modelFactory');
+var entityState = require('../../database/entityState');
 
 var userSchema = new schema("User",
     [
@@ -22,24 +22,40 @@ var userSchema = new schema("User",
             name: "userName",
             isKeyField: false,
             isRequired: true,
+            ignoreForClient: true,
+            type: types.string
+        },
+        {
+            name: "firstName",
+            isKeyField: false,
+            isRequired: true,
+            type: types.string
+        },
+        {
+            name: "lastName",
+            isKeyField: false,
+            isRequired: true,
             type: types.string
         },
         {
             name: "password",
             isKeyField: false,
             isRequired: true,
+            ignoreForClient: true,
             type: types.string
         },
         {
             name: "token",
             isKeyField: false,
             isRequired: false,
+            ignoreForClient: true,
             type: types.string
         },
         {
-            name: "lastTokenCreated",
+            name: "tokenExpiresIn",
             isKeyField: false,
             isRequired: true,
+            ignoreForClient: true,
             type: types.date
         }
     ]);

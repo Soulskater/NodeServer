@@ -103,35 +103,49 @@ var generator = {
             query.field(field.fieldName, field.alias);
         });
 
-        entitySchema.definition.forEach(function (propertyDescriptor) {
-
-            if (propertyDescriptor.reference) {
-                var referenceSchema = factory.getEntitySchema(propertyDescriptor.reference.name);
-                var referencedTableName = _formatTableName(referenceSchema.name);
-                var keyField = util.format("%s.%s", tableName, propertyDescriptor.name);
-                var referencedField = util.format("%s.%s", referencedTableName, referenceSchema.getKeyFieldColumn().name);
-                query.left_join(propertyDescriptor.reference.name, null, util.format("%s=%s", keyField, referencedField));
-            }
-        });
+        _joinTables(entitySchema, query);
 
         for (var filterName in filterObject) {
-            query.where(util.format("%s=%s", filterName, filterObject[filterName]));
+            query.where(util.format("%s.%s=%s", tableName, filterName, filterObject[filterName]));
         }
 
         return query.toString();
 
-        function _getAllFields(entitySchema, fields) {
+        function _joinTables(entitySchema, query, parentReferencedTableAlias) {
+            entitySchema.definition.forEach(function (propertyDescriptor) {
+
+                if (propertyDescriptor.reference) {
+                    var referenceSchema = factory.getEntitySchema(propertyDescriptor.reference.name);
+                    var referencedTableName = _formatTableName(referenceSchema.name);
+                    var keyField = util.format("%s.%s", parentReferencedTableAlias || tableName, propertyDescriptor.name);
+                    var referencedTableAlias = util.format("%s_%s", entitySchema.name, propertyDescriptor.reference.referencedFieldName);
+                    var referencedField = util.format("%s.%s", referencedTableAlias, referenceSchema.getKeyFieldColumn().name);
+                    query.left_join(util.format("%s as %s", referencedTableName, referencedTableAlias), null, util.format("%s=%s", keyField, referencedField));
+                    _joinTables(referenceSchema, query, referencedTableAlias);
+                }
+            });
+        }
+
+        function _getAllFields(entitySchema, fields, referenceSchemaName, referenceFieldName) {
             var tableName = _formatTableName(entitySchema.name);
             entitySchema.definition.forEach(function (propertyDescriptor) {
                 if (propertyDescriptor.reference) {
                     var referenceSchema = factory.getEntitySchema(propertyDescriptor.reference.name);
-                    fields = fields.concat(_getAllFields(referenceSchema, fields));
+                    _getAllFields(referenceSchema, fields, entitySchema.name, propertyDescriptor.reference.referencedFieldName);
                 }
                 else {
-                    fields.push({
-                        fieldName: util.format("%s.%s", tableName, propertyDescriptor.name),
-                        alias: util.format("%s.%s", entitySchema.name, propertyDescriptor.name)
-                    });
+                    if (referenceFieldName) {
+                        fields.push({
+                            fieldName: util.format("%s_%s.%s", referenceSchemaName, referenceFieldName, propertyDescriptor.name),
+                            alias: util.format("%s.%s.%s", referenceSchemaName, referenceFieldName, propertyDescriptor.name)
+                        });
+                    }
+                    else {
+                        fields.push({
+                            fieldName: util.format("%s.%s", tableName, propertyDescriptor.name),
+                            alias: util.format("%s.%s", entitySchema.name, propertyDescriptor.name)
+                        });
+                    }
                 }
             });
             return fields;
@@ -152,7 +166,7 @@ var generator = {
 };
 
 /* Tell Squel how to handle Date objects */
-squel.registerValueHandler(Date, function(date) {
+squel.registerValueHandler(Date, function (date) {
     return moment(date).format("YYYY-MM-D LTS");
 });
 
